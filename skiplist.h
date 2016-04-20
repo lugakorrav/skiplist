@@ -67,6 +67,10 @@ public:
 	skipListIterator<E> begin() const;
 	skipListIterator<E> end() const;
 
+	skiplist<E>& operator= (const skiplist<E>&);
+	bool operator== (const skiplist<E>&);
+	bool operator!= (const skiplist<E>&);
+
 	template<class E> friend std::ostream& operator<< (std::ostream&, const skiplist&);
 
 };
@@ -276,12 +280,46 @@ template<class E> int skiplist<E>::size() const
 
 template<class E> std::ostream& operator<< (std::ostream& out, const skiplist<E>& sl)
 {
-	if (sl.size() != 0)
-	for (skipListIterator<E> it = sl.begin(); it != sl.end(); it++)
+	if (sl.size() == 0)
 	{
-		out << *it << ' ';
+		return out;
 	}
+		for (skipListIterator<E> it = sl.begin(); it != sl.end(); it++)
+		{
+			out << *it << ' ';
+		}
 	return out;
+}
+
+template<class E> skiplist<E>& skiplist<E>::operator= (const skiplist<E>& sl)
+{
+	clear();
+	for (skipListIterator<E> it = sl.begin(); it != sl.end; it++)
+	{
+		add(*it);
+	}
+	return *this;
+}
+
+template<class E> bool skiplist<E>::operator== (const skiplist<E>& sl)
+{
+	if (_size != sl.size())
+	{
+		return false;
+	}
+	for (skipListIterator<E> it1 = sl.begin(), skipListIterator<E> it2 = _begin; it1 != sl.end; it1++, it2++)
+	{
+		if (*it1 != *it2)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+template<class E> bool skiplist<E>::operator!= (const skiplist<E>& sl)
+{
+	return !(*this == sl);
 }
 
 template<class E> skipListIterator<E>::skipListIterator()
@@ -306,12 +344,20 @@ template<class E> skipListIterator<E> skiplist<E>::end() const
 
 template<class E> bool skipListIterator<E>::operator== (const skipListIterator& it) const
 {
+	if ((this->_node == NULL) && (it._node == NULL))
+	{
+		return true;
+	}
+	if (this->_node->data == NULL)
+	{
+		return (this->_node->next[0] == it._node);
+	}
 	return (this->_node == it._node);
 }
 
 template<class E> bool skipListIterator<E>::operator!= (const skipListIterator& it) const
 {
-	return (this->_node != it._node);
+	return !(*this == it);
 }
 
 template<class E> E& skipListIterator<E>::operator* () const
