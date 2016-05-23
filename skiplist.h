@@ -76,12 +76,12 @@ public:
 
 template<class E> skiplist<E>::skiplist()
 {
-	header = new node<E>(NULL, 0, 0, NULL);
+	header = new node<E>(nullptr, 0, 0, nullptr);
 	currentHeight = 0;
 	maxHeight = 15;
 	_size = 0;
 
-	srand(time(NULL));
+	srand(time(nullptr));
 }
 
 template<class E> skiplist<E>::~skiplist()
@@ -98,10 +98,10 @@ template<class E> node<E>::node(E* data, int height, int nextCapacity, node<E>**
 
 	for (int i = 0; i <= this->height; i++)
 	{
-		this->next[i] = NULL;
+		this->next[i] = nullptr;
 	};
 
-	if (next != NULL)
+	if (next != nullptr)
 	{
 		for (int i = 0; i <= this->height, i <= nextCapacity; i++)
 		{
@@ -126,7 +126,7 @@ template<class E> bool skiplist<E>::insert(E e)
 	node<E>* newHeader;
 	if (height > currentHeight)
 	{
-		newHeader = new node<E>(NULL, height, header->height, header->next);
+		newHeader = new node<E>(nullptr, height, header->height, header->next);
 	}
 	else
 	{
@@ -139,7 +139,7 @@ template<class E> bool skiplist<E>::insert(E e)
 	for (int i = 0; i <= height; i++)
 	{
 		prevNodes[i] = newHeader;
-		nextNodes[i] = NULL;
+		nextNodes[i] = nullptr;
 	};
 
 	node<E>* current = newHeader;
@@ -148,7 +148,7 @@ template<class E> bool skiplist<E>::insert(E e)
 	for (int level = currentHeight; level >= 0; level--)
 	{
 		next = current->next[level];
-		while (next != NULL)
+		while (next != nullptr)
 		{
 			if (*(next->data) == e)
 			{
@@ -156,11 +156,10 @@ template<class E> bool skiplist<E>::insert(E e)
 			}
 			else if (*(next->data) > e)
 			{
-				next = current;
 				break;
 			}
 			current = next;
-			next = next->next[level];
+			next = current->next[level];
 		}
 		if (level <= height)
 		{
@@ -193,7 +192,7 @@ template<class E> skipListIterator<E> skiplist<E>::find(E& e) const
 	for (int level = currentHeight; level >= 0; level--)
 	{
 		next = current->next[level];
-		while (next != NULL)
+		while (next != nullptr)
 		{
 			if (*(next->data) == e)
 			{
@@ -202,7 +201,6 @@ template<class E> skipListIterator<E> skiplist<E>::find(E& e) const
 			}
 			else if (*(next->data) > e)
 			{
-				next = current;
 				break;
 			}
 			current = next;
@@ -217,7 +215,7 @@ template<class E> bool skiplist<E>::erase(E e)
 	node<E>** prevNodes = new node<E>*[currentHeight + 1];
 	node<E>* current = header;
 	node<E>* next = header->next[currentHeight];
-	node<E>* found = NULL;
+	node<E>* found = nullptr;
 	for (int i = 0; i <= currentHeight; i++)
 	{
 		prevNodes[i] = header;
@@ -226,11 +224,11 @@ template<class E> bool skiplist<E>::erase(E e)
 	for (int level = currentHeight; level >= 0; level--)
 	{
 		next = current->next[level];
-		while (next != NULL)
+		while (next != nullptr)
 		{
 			if (*(next->data) == e)
 			{
-				if (found == NULL)
+				if (found == nullptr)
 				{
 					found = next;
 				}
@@ -238,7 +236,6 @@ template<class E> bool skiplist<E>::erase(E e)
 			}
 			else if (*(next->data) > e)
 			{
-				next = current;
 				break;
 			}
 			current = next;
@@ -246,7 +243,7 @@ template<class E> bool skiplist<E>::erase(E e)
 		}
 		prevNodes[level] = current;
 	}
-	if (found == NULL)
+	if (found == nullptr)
 	{
 		return false;
 	}
@@ -263,14 +260,14 @@ template<class E> void skiplist<E>::clear()
 {
 	node<E>* current = header->next[0];
 	node<E>* next;
-	while (current != NULL)
+	while (current != nullptr)
 	{
 		next = current->next[0];
 		delete current;
 		current = next;
 	}
 	delete header;
-	header = new node<E>(NULL, 0, 0, NULL);
+	header = new node<E>(nullptr, 0, 0, nullptr);
 	currentHeight = 0;
 	_size = 0;
 }
@@ -282,10 +279,6 @@ template<class E> int skiplist<E>::size() const
 
 template<class E> std::ostream& operator<< (std::ostream& out, const skiplist<E>& sl)
 {
-	if (sl.size() == 0)
-	{
-		return out;
-	}
 	for (skipListIterator<E> it = sl.begin(); it != sl.end(); it++)
 	{
 		out << *it << ' ';
@@ -326,7 +319,7 @@ template<class E> bool skiplist<E>::operator!= (const skiplist<E>& sl)
 
 template<class E> skipListIterator<E>::skipListIterator()
 {
-	this->_node = NULL;
+	this->_node = nullptr;
 }
 
 template<class E> skipListIterator<E>::skipListIterator(node<E>* _node)
@@ -342,7 +335,7 @@ template<class E> skipListIterator<E> skiplist<E>::begin() const
 
 template<class E> skipListIterator<E> skiplist<E>::end() const
 {
-	skipListIterator<E> it(NULL);
+	skipListIterator<E> it(nullptr);
 	return it;
 }
 
@@ -358,38 +351,17 @@ template<class E> bool skipListIterator<E>::operator!= (const skipListIterator& 
 
 template<class E> E& skipListIterator<E>::operator* () const
 {
-	if (this->_node == NULL)
-	{
-		exit(-1);
-	}
-	else
-	{
-		return *(this->_node->data);
-	}
+	return *(this->_node->data);
 }
 
 template<class E> skipListIterator<E> skipListIterator<E>::operator++ (int)
 {
-	if (this->_node == NULL)
-	{
-		exit(-1);
-	}
-	else
-	{
-		skipListIterator<E> sl(*this);
-		this->_node = this->_node->next[0];
-		return sl;
-	}
+	skipListIterator<E> sl(*this);
+	this->_node = this->_node->next[0];
+	return sl;
 }
 
 template<class E> E* skipListIterator<E>::operator-> ()
 {
-	if (this->_node == NULL)
-	{
-		exit(-1);
-	}
-	else
-	{
-		return this->_node->data;
-	}
+	return this->_node->data;
 }
