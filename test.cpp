@@ -21,6 +21,17 @@ int main()
 		sl.insert(*it);
 	}
 	int stop_sl = clock();
+
+	cout << stop_set - start_set << endl;
+	cout << stop_sl - start_sl << endl;
+
+	for (int i = 1; i < 1000; i++)
+	{
+		int r = rand() % 10000;
+		s.erase(r);
+		sl.erase(r);
+	}
+
 	cout << s.size() << endl;
 	cout << sl.size() << endl;
 
@@ -33,9 +44,6 @@ int main()
 			cout << "something went wrong";
 		}
 	}
-
-	cout << stop_set - start_set << endl;
-	cout << stop_sl - start_sl << endl;
 
 	return 0;
 }
