@@ -6,9 +6,10 @@ template<class E> class node
 private:
 	E* data;
 	int height;
+	node<E>** prev;
 	node<E>** next;
 
-	node(E*, int, int, node<E>**);
+	node(E*, int, int, int, node<E>**, node<E>**);
 	~node();
 
 public:
@@ -33,6 +34,8 @@ public:
 	E& operator *() const;
 	skiplistIterator<E> operator++ (int);
 	skiplistIterator<E>& operator++ ();
+	skiplistIterator<E> operator-- (int);
+	skiplistIterator<E>& operator-- ();
 	E* operator ->();
 };
 
@@ -77,7 +80,7 @@ public:
 
 template<class E> skiplist<E>::skiplist()
 {
-	header = new node<E>(nullptr, 0, 0, nullptr);
+	header = new node<E>(nullptr, 0, 0, 0, nullptr, nullptr);
 	currentHeight = 0;
 	maxHeight = 15;
 	_size = 0;
@@ -91,15 +94,17 @@ template<class E> skiplist<E>::~skiplist()
 	delete header;
 }
 
-template<class E> node<E>::node(E* data, int height, int nextCapacity, node<E>** next)
+template<class E> node<E>::node(E* data, int height, int prevCapacity, int nextCapacity, node<E>** prev, node<E>** next)
 {
 	this->data = data;
 	this->height = height;
 	this->next = new node<E>*[height + 1];
+	this->prev = new node<E>*[height + 1];
 
 	for (int i = 0; i <= this->height; i++)
 	{
 		this->next[i] = nullptr;
+		this->prev[i] = nullptr; //nullptr == header
 	};
 
 	if (next != nullptr)
@@ -109,11 +114,19 @@ template<class E> node<E>::node(E* data, int height, int nextCapacity, node<E>**
 			this->next[i] = next[i];
 		};
 	}
+
+	if (prev != nullptr)
+	{
+		for (int i = 0; i <= this->height, i <= prevCapacity; i++)
+		{
+			this->prev[i] = prev[i];
+		};
+	}
 }
 
 template<class E> node<E>::~node()
 {
-	delete data, next;
+	delete data, prev, next;
 }
 
 template<class E> bool skiplist<E>::insert(E e)
@@ -127,7 +140,7 @@ template<class E> bool skiplist<E>::insert(E e)
 	node<E>* newHeader;
 	if (height > currentHeight)
 	{
-		newHeader = new node<E>(nullptr, height, header->height, header->next);
+		newHeader = new node<E>(nullptr, height, 0, header->height, nullptr, header->next);
 	}
 	else
 	{
@@ -139,7 +152,7 @@ template<class E> bool skiplist<E>::insert(E e)
 
 	for (int i = 0; i <= height; i++)
 	{
-		prevNodes[i] = newHeader;
+		prevNodes[i] = nullptr; //nullptr == header
 		nextNodes[i] = nullptr;
 	};
 
@@ -164,7 +177,10 @@ template<class E> bool skiplist<E>::insert(E e)
 		}
 		if (level <= height)
 		{
-			prevNodes[level] = current;
+			if (current != newHeader) // else current = nullptr
+			{
+				prevNodes[level] = current;
+			}
 			nextNodes[level] = current->next[level];
 		}
 	}
@@ -176,10 +192,21 @@ template<class E> bool skiplist<E>::insert(E e)
 		currentHeight = height;
 	}
 
-	node<E>* newNode = new node<E>(new E(e), height, height, nextNodes);
+	node<E>* newNode = new node<E>(new E(e), height, height, height, prevNodes, nextNodes);
 	for (int i = 0; i <= height; i++)
 	{
-		prevNodes[i]->next[i] = newNode;
+		if (prevNodes[i] != nullptr)
+		{
+			prevNodes[i]->next[i] = newNode;
+		}
+		else //nullptr == header
+		{
+			header->next[i] = newNode;
+		}
+		if (nextNodes[i] != nullptr)
+		{
+			nextNodes[i]->prev[i] = newNode;
+		}
 	}
 	delete prevNodes, nextNodes;
 	_size++;
@@ -205,7 +232,7 @@ template<class E> skiplistIterator<E> skiplist<E>::find(E& e) const
 				break;
 			}
 			current = next;
-			next = next->next[level];
+			next = current->next[level];
 		}
 	}
 	return end();
@@ -213,46 +240,27 @@ template<class E> skiplistIterator<E> skiplist<E>::find(E& e) const
 
 template<class E> bool skiplist<E>::erase(E e)
 {
-	node<E>** prevNodes = new node<E>*[currentHeight + 1];
-	node<E>* current = header;
-	node<E>* next = header->next[currentHeight];
-	node<E>* found = nullptr;
-	for (int i = 0; i <= currentHeight; i++)
-	{
-		prevNodes[i] = header;
-	};
-
-	for (int level = currentHeight; level >= 0; level--)
-	{
-		next = current->next[level];
-		while (next != nullptr)
-		{
-			if (*(next->data) == e)
-			{
-				if (found == nullptr)
-				{
-					found = next;
-				}
-				break;
-			}
-			else if (*(next->data) > e)
-			{
-				break;
-			}
-			current = next;
-			next = next->next[level];
-		}
-		prevNodes[level] = current;
-	}
+	node<E>* found = find(e)._node;
 	if (found == nullptr)
 	{
 		return false;
 	}
 	for (int i = 0; i <= found->height; i++)
 	{
-		prevNodes[i]->next[i] = found->next[i];
+		if (found->prev[i] != nullptr)
+		{
+			found->prev[i]->next[i] = found->next[i];
+		}
+		else //nullptr == header
+		{
+			header->next[i] = found->next[i];
+		}
+		if (found->next[i] != nullptr)
+		{
+			found->next[i]->prev[i] = found->prev[i];
+		}
 	}
-	delete found, prevNodes;
+	delete found;
 	_size--;
 	return true;
 }
@@ -268,7 +276,7 @@ template<class E> void skiplist<E>::clear()
 		current = next;
 	}
 	delete header;
-	header = new node<E>(nullptr, 0, 0, nullptr);
+	header = new node<E>(nullptr, 0, 0, 0, nullptr, nullptr);
 	currentHeight = 0;
 	_size = 0;
 }
@@ -365,6 +373,19 @@ template<class E> skiplistIterator<E> skiplistIterator<E>::operator++ (int)
 template<class E> skiplistIterator<E>& skiplistIterator<E>::operator++ ()
 {
 	_node = _node->next[0];
+	return this;
+}
+
+template<class E> skiplistIterator<E> skiplistIterator<E>::operator-- (int)
+{
+	skiplistIterator<E> sl(*this);
+	_node = _node->prev[0];
+	return sl;
+}
+
+template<class E> skiplistIterator<E>& skiplistIterator<E>::operator-- ()
+{
+	_node = _node->prev[0];
 	return this;
 }
 
